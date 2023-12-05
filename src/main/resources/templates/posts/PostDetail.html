@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+</head>
+<body>
+  <div th:replace="parts/navbar"></div>
+
+  <div class="container">
+      <h1 class="py-3" th:text="${post.title}"></h1>
+      <div class="d-flex align-items-center" style="border-top: 1px solid #555; border-bottom: 1px solid #555">
+          <div class="d-flex align-items-center mr-5 py-3">
+              <i class="fa-regular fa-circle-user mr-1"></i>
+              <p style="margin: 0; padding: 0"
+                th:text="${post.getAuthor().getFirstName() + ' ' + post.getAuthor().getLastName()}"
+              ></p>
+          </div>
+          <div class="d-flex align-items-center mr-5 py-3">
+              <i class="fa-regular fa-calendar-days mr-1"></i>
+              <p style="margin: 0; padding: 0"
+                th:text="${post.getPublishedAt().toString()}"
+              >
+
+              </p>
+          </div>
+
+      </div>
+      <p style="font-weight: 500; font-size: 20px"
+        th:text="${post.getSummary()}"
+      >
+
+      </p>
+      <p
+        th:text="${post.getContent()}"
+      >
+
+      </p>
+      <div class="d-flex align-items-center">
+          <i class="fa-solid fa-tags mr-1"></i>
+          <span
+            th:text="${post.metaTitle}"
+          >
+
+          </span>
+      </div>
+      <div class="mt-5" th:if="${post.posts != null && post.posts.size() > 0}">
+          <h4>List Child Posts</h4>
+          <ul>
+              <th:block
+                th:each="postChild : ${post.posts}"
+              >
+                <li>
+                    <a th:href="@{'/posts/' + ${postChild.id}}"
+                       th:text="${postChild.title}"></a>
+                </li>
+              </th:block>
+          </ul>
+      </div>
+      <div class="mt-5" th:if="${postCommentPage != null}">
+          <h4>Comments</h4>
+          <th:block th:each="postComment : ${postCommentPage.content}">
+              <div style="width: 70%">
+                  <div class="d-flex p-3"
+                       style="border: 1px solid #000; border-radius: 8px; margin-bottom: 20px"
+                  >
+                      <div>
+                          <img
+                                  style="border-radius: 50px; width: 65px; height: 65px"
+                                  src="https://media.istockphoto.com/id/1337144146/vector/default-avatar-profile-icon-vector.jpg?s=612x612&w=0&k=20&c=BIbFwuv7FxTWvh5S3vB6bkT0Qv8Vn8N5Ffseq84ClGI="/>
+                      </div>
+                      <div style="flex-grow: 1">
+                          <p style="color: forestgreen; font-weight: 700; margin-bottom: 5px;"
+                            th:inline="text" th:text="${postComment.user.firstName + ' ' + postComment.user.lastName}"
+                          >
+                          </p>
+                          <p style="margin-bottom: 5px" th:text="${'Comment ID: ' + postComment.id}"></p>
+                          <p style="margin-bottom: 5px"
+                             th:if="${postComment.parent != null}"
+                             th:text="${'Parent Comment ID: ' + postComment.parent.id}"></p>
+                          <p style="margin-bottom: 5px; color: #000; font-weight: 500" th:text="${'Title: ' + postComment.title}"
+                          ></p>
+                          <p th:text="${'Content: ' + postComment.content}">
+
+                          </p>
+                          <p style="margin-bottom: 0" th:text="${'Date: ' + postComment.publishedAt}"></p>
+                      </div>
+                      <div>
+                          <a
+                                  th:if="${session.account != null && session.account.id == postComment.user.id}"
+                                  th:href="@{'/post-comments/edit/' + ${postComment.id}}"><i class="fa-solid fa-pen-to-square" style="font-size: 30px; margin-right: 10px"></i></a>
+                          <a
+                                  th:if="${session.account != null && session.account.id == postComment.user.id}"
+                                  th:href="@{'/post-comments/delete/' + ${postComment.id}}"><i class="fa-solid fa-trash" style="font-size: 30px;"></i></a>
+                      </div>
+                  </div>
+              </div>
+          </th:block>
+
+          <div th:if="${pageCmtNumbers != null}"
+            th:each="pageCmt : ${pageCmtNumbers}"
+               style="text-align: center"
+          >
+              <a th:href="@{'/posts/' + ${post.id} + '?(cmtPage=' + ${pageCmt} + ', cmtSize=' + ${postCommentPage.size} +')'}"
+                th:text="${pageCmt}"
+                 style="font-size: 18px; font-weight: 700"
+              ></a>
+          </div>
+      </div>
+      <div th:if="${session != null && session.account != null}" class="mt-3">
+          <h5>Post Your comment: </h5>
+          <form action="#" method="post" th:action="@{/post-comments/add}">
+              <div class="form-group">
+                  <input type="hidden"
+                         class="form-control" th:name="postID"
+                         th:value="${post.id}"
+                         id="inputPostID" required
+                  >
+              </div>
+              <div class="form-group">
+                  <label for="inputReplyCommentID">Reply Comment ID (Optional)</label>
+                  <input type="number"
+                         class="form-control" th:name="parentCmtID" id="inputReplyCommentID">
+              </div>
+              <div class="form-group">
+                  <label for="inputTitle">Title</label>
+                  <input type="text"
+                         class="form-control" th:name="title" id="inputTitle">
+              </div>
+              <div class="form-group">
+                  <label for="inputContent">Content</label>
+                  <textarea class="form-control" th:name="content" id="inputContent" rows="4"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Comment</button>
+          </form>
+          <h5 th:text="${p}"></h5>
+      </div>
+  </div>
+
+
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+</body>
+</html>
